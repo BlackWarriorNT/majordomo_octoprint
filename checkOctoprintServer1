@@ -1,0 +1,37 @@
+$msgLevel = '1';
+$name = 'octoprintServer1';
+$octoprintServer1IP = gg($name.'.IP');
+$octoprintServer1Port = gg($name.'.Port');
+$octoprintServer1APIkey = gg($name.'.APIkey');
+if ($octoprintServer1IP == '' or $octoprintServer1Port == '' or $octoprintServer1APIkey == '') {
+ if ($octoprintServer1IP == '') {say('Не указан IP сервера Octoprint', $msgLevel);}
+ if ($octoprintServer1Port == '') {say('Не указан порт сервера Octoprint', $msgLevel);}
+ if ($octoprintServer1APIkey == '') {say('Не указан apikey сервера Octoprint', $msgLevel);}
+ return;
+}
+
+$url = 'http://'.$octoprintServer1IP.':'.$octoprintServer1Port.'/api/job?apikey='.$octoprintServer1APIkey;
+$json = getURL($url);
+if ($json == '') {
+ say('Сервер Octoprint не отвечает!', $msgLevel);
+ return;
+}
+
+$obj = json_decode($json);
+$estimatedPrintTime = $obj->{"job"}->{"estimatedPrintTime"};
+$estimatedPrintTime = date("H:i:s", mktime(0, 0, $estimatedPrintTime));
+$filamentLenght = round($obj->{"job"}->{"filament"}->{"tool0"}->{"length"});
+$filamentLenght = round($filamentLenght/1000, 2);
+$printTime = $obj->{"progress"}->{"printTime"};
+$printTime = date("H:i:s", mktime(0, 0, $printTime));
+$printTimeLeft = $obj->{"progress"}->{"printTimeLeft"};
+$printTimeLeft = date("H:i:s", mktime(0, 0, $printTimeLeft));
+$completion = round($obj->{"progress"}->{"completion"});
+$state = $obj->{"state"};
+
+if (gg($name.'.estimatedPrintTime') != $estimatedPrintTime) {sg($name.'.estimatedPrintTime', $estimatedPrintTime);}
+if (gg($name.'.filamentLenght') != $filamentLenght) {sg($name.'.filamentLenght', $filamentLenght);}
+if (gg($name.'.printTime') != $printTime) {sg($name.'.printTime', $printTime);}
+if (gg($name.'.printTimeLeft') != $printTimeLeft) {sg($name.'.printTimeLeft', $printTimeLeft);}
+if (gg($name.'.completion') != $completion) {sg($name.'.completion', $completion);}
+if (gg($name.'.state') != $state) {sg($name.'.state', $state);}
